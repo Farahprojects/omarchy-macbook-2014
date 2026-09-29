@@ -1,30 +1,48 @@
 #!/usr/bin/bash
 set -euo pipefail
 
-selection_file=$(mktemp)
-trap 'rm -f -- "$selection_file"' EXIT
+# The compositor passes the clicked Foot window. This does not depend on a
+# terminal selection, and works in existing windows and mouse-aware TUIs.
+window_address=${1:-$(hyprctl activewindow -j | jq -r '.address // empty')}
+[[ $window_address =~ ^0x[[:xdigit:]]+$ ]] || exit 1
 
-# Foot sends the currently selected terminal text to this command on stdin.
-cat >"$selection_file"
+# Repeated two-finger clicks must not stack menus or strand waiting helpers.
+exec 9>"${XDG_RUNTIME_DIR:?}/foot-context-menu.lock"
+flock -n 9 || exit 0
 
-choice=$(omarchy menu select "Terminal" \
+choice=$(omarchy-menu-select "Terminal" \
   "Copy selection" \
   "Paste clipboard" \
   -- --width 320) || exit 0
 
 case "$choice" in
   "Copy selection")
-    if [[ -s "$selection_file" ]]; then
-      wl-copy <"$selection_file"
-      notify-send -a Foot "Copied" "Terminal selection copied to the clipboard."
-    else
-      notify-send -a Foot "Nothing selected" "Select terminal text first, then open this menu."
-    fi
+    modifiers=CTRL
+    key=Insert
     ;;
   "Paste clipboard")
-    # Give keyboard focus back to Foot after the menu closes, then invoke
-    # Foot's own paste shortcut so bracketed-paste protection is preserved.
-    sleep 0.15
-    wtype -M ctrl -M shift -k v -m shift -m ctrl
+    modifiers=SHIFT
+    key=Insert
     ;;
+  *) exit 0 ;;
 esac
+
+# Use Foot's own clipboard bindings, aimed at the original window. No terminal
+# contents are captured, and another window cannot receive a delayed paste.
+# Split key down/up, as Omarchy's clipboard bindings do, to avoid stuck keys.
+hyprctl eval "
+  local target = hl.get_window('address:$window_address')
+  if target and (target.class == 'foot' or target.class == 'footclient') then
+    hl.dispatch(hl.dsp.send_key_state({
+      mods = '$modifiers', key = '$key', state = 'down', window = target
+    }))
+    hl.timer(function()
+      local remaining = hl.get_window('address:$window_address')
+      if remaining then
+        hl.dispatch(hl.dsp.send_key_state({
+          mods = '$modifiers', key = '$key', state = 'up', window = remaining
+        }))
+      end
+    end, { timeout = 50, type = 'oneshot' })
+  end
+" >/dev/null

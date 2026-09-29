@@ -14,6 +14,8 @@ MacBook-specific hardware settings and user customizations.
   LocalSend, and OBS, while other applications keep Omarchy's normal tiling.
 - Dialog sizing and centering that fit the scaled 13-inch display.
 - Trackpad-friendly border resizing and three-finger drag.
+- A two-finger/right-click Copy/Paste menu in Foot, available without selecting
+  text first and inside terminal applications that capture mouse clicks.
 - Mac-style screenshot shortcuts (`Ctrl+Shift+3/4/5`).
 - A `1.6` internal-display scale for the 2560×1600 Retina panel.
 - Custom Omarchy Shell display and notification plugins.

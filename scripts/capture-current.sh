@@ -5,6 +5,7 @@ set -euo pipefail
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 
 tracked_home_files=(
+  .config/foot/foot.ini
   .config/hypr/hyprland.lua
   .config/hypr/bindings.lua
   .config/hypr/input.lua
