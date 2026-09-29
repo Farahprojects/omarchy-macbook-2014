@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# The Pocket 3 briefly emits stale/invalid frames when its UVC stream starts.
+# OBS stops its V4L2 capture on the first decoder error, so let the camera
+# settle at the canvas-friendly format before OBS opens it.
+
+if pgrep -x obs >/dev/null; then
+    exec /usr/bin/obs "$@"
+fi
+
+# Avoid publishing or hard-coding a camera serial. Override DJI_CAMERA when
+# more than one matching device is attached.
+dji_camera=${DJI_CAMERA:-}
+if [[ -z "$dji_camera" ]]; then
+    for candidate in /dev/v4l/by-id/usb-DJI_DJIPocket3_*-video-index0; do
+        if [[ -e "$candidate" ]]; then
+            dji_camera=$candidate
+            break
+        fi
+    done
+fi
+prewarm_dji=true
+
+for argument in "$@"; do
+    if [[ "$argument" == "YouTube Quiet" ]]; then
+        prewarm_dji=false
+        break
+    fi
+done
+
+if [[ "$prewarm_dji" == true && -n "$dji_camera" && -e "$dji_camera" ]]; then
+    timeout 8s /usr/bin/v4l2-ctl \
+        --device="$dji_camera" \
+        --set-fmt-video=width=1280,height=720,pixelformat=MJPG \
+        --set-parm=30 \
+        --stream-mmap=4 \
+        --stream-count=90 \
+        --stream-to=/dev/null \
+        >/dev/null 2>&1 || true
+fi
+
+exec /usr/bin/obs "$@"

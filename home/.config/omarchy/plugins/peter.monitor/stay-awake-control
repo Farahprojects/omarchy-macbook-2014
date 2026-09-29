@@ -1,0 +1,98 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+state_dir="$state_home/omarchy"
+state_file="$state_dir/display-stay-awake"
+marker_dir="$state_dir/indicators"
+marker_file="$marker_dir/stay-awake"
+
+write_state() {
+  local value="$1"
+  local temporary="$state_file.tmp.$$"
+  mkdir -p "$state_dir"
+  printf '%s\n' "$value" >"$temporary"
+  mv -f -- "$temporary" "$state_file"
+}
+
+normal() {
+  rm -f -- "$state_file" "$marker_file"
+}
+
+status() {
+  local now kind deadline duration remaining
+
+  if [[ ! -e "$marker_file" ]]; then
+    rm -f -- "$state_file"
+    printf 'normal\t0\t0\n'
+    return
+  fi
+
+  # A marker without our timing file may have been enabled by Omarchy's
+  # built-in Stay Awake indicator. Treat it as an indefinite request.
+  if [[ ! -s "$state_file" ]]; then
+    printf 'forever\t0\t-1\n'
+    return
+  fi
+
+  read -r kind deadline duration <"$state_file" || true
+  if [[ "$kind" == "forever" ]]; then
+    printf 'forever\t0\t-1\n'
+    return
+  fi
+
+  if [[ "$kind" != "timed" || ! "$deadline" =~ ^[0-9]+$ || ! "$duration" =~ ^[0-9]+$ ]]; then
+    # Preserve an externally enabled Stay Awake marker if the timing metadata
+    # is ever damaged; the Display card can still return it to Normal.
+    rm -f -- "$state_file"
+    printf 'forever\t0\t-1\n'
+    return
+  fi
+
+  now=$(date +%s)
+  remaining=$((deadline - now))
+  if (( remaining <= 0 )); then
+    normal
+    if command -v notify-send >/dev/null 2>&1; then
+      notify-send -a Omarchy 'Stay Awake finished' 'Normal screen and lock timing restored.' || true
+    fi
+    printf 'normal\t0\t0\n'
+    return
+  fi
+
+  printf 'timed\t%s\t%s\n' "$remaining" "$duration"
+}
+
+case "${1:-status}" in
+  status)
+    status
+    ;;
+  set)
+    seconds="${2:-}"
+    case "$seconds" in
+      0)
+        normal
+        ;;
+      -1)
+        mkdir -p "$marker_dir"
+        write_state 'forever 0 -1'
+        touch "$marker_file"
+        ;;
+      *)
+        if [[ ! "$seconds" =~ ^[0-9]+$ ]] || (( seconds <= 0 )); then
+          printf 'Invalid duration: %s\n' "$seconds" >&2
+          exit 2
+        fi
+        mkdir -p "$marker_dir"
+        deadline=$(($(date +%s) + seconds))
+        write_state "timed $deadline $seconds"
+        touch "$marker_file"
+        ;;
+    esac
+    status
+    ;;
+  *)
+    printf 'Usage: %s status | set <0|-1|seconds>\n' "$0" >&2
+    exit 2
+    ;;
+esac

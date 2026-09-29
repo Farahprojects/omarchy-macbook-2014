@@ -1,0 +1,30 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+selection_file=$(mktemp)
+trap 'rm -f -- "$selection_file"' EXIT
+
+# Foot sends the currently selected terminal text to this command on stdin.
+cat >"$selection_file"
+
+choice=$(omarchy menu select "Terminal" \
+  "Copy selection" \
+  "Paste clipboard" \
+  -- --width 320) || exit 0
+
+case "$choice" in
+  "Copy selection")
+    if [[ -s "$selection_file" ]]; then
+      wl-copy <"$selection_file"
+      notify-send -a Foot "Copied" "Terminal selection copied to the clipboard."
+    else
+      notify-send -a Foot "Nothing selected" "Select terminal text first, then open this menu."
+    fi
+    ;;
+  "Paste clipboard")
+    # Give keyboard focus back to Foot after the menu closes, then invoke
+    # Foot's own paste shortcut so bracketed-paste protection is preserved.
+    sleep 0.15
+    wtype -M ctrl -M shift -k v -m shift -m ctrl
+    ;;
+esac

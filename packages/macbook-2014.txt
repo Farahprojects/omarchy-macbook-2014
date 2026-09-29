@@ -1,0 +1,19 @@
+# Hardware and workflow packages used by the source MacBookPro11,1.
+# Official packages can be installed with: sudo pacman -S --needed <name>
+# AUR packages can be installed with: yay -S --needed <name>
+
+# Apple/Intel hardware
+bolt
+broadcom-wl-dkms
+intel-ucode
+libva-intel-driver
+thermald
+
+# AUR / foreign hardware packages
+distroav-git
+mbpfan-git
+ndi-sdk
+
+# Capture and sharing workflow
+localsend
+obs-studio

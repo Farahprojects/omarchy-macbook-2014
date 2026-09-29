@@ -1,0 +1,13 @@
+[Unit]
+Description=LocalSend background file sharing
+After=graphical-session.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/localsend --hidden
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
