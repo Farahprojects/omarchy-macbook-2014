@@ -10,8 +10,10 @@ MacBook-specific hardware settings and user customizations.
 
 ## What is included
 
-- Movable, overlapping Hyprland windows for Terminal, Chromium, Files,
-  LocalSend, and OBS, while other applications keep Omarchy's normal tiling.
+- Movable, overlapping windows by default for all normal applications, including
+  Terminal, Chromium, Files, LocalSend, and OBS. Clicking an exposed window
+  brings it above other ordinary windows instead of leaving it underneath a
+  floating app. Explicit fullscreen and special desktop panels remain separate.
 - Dialog sizing and centering that fit the scaled 13-inch display.
 - Trackpad-friendly border resizing and three-finger drag.
 - A two-finger/right-click Copy/Paste menu in Foot, available without selecting
@@ -29,6 +31,13 @@ MacBook-specific hardware settings and user customizations.
   repository, validates them, and verifies the GitHub push.
 
 The snapshot was captured from Omarchy `4.0.4` on 29 September 2026.
+
+The global stacking policy lives in `home/.config/hypr/floating.lua` and loads
+last. It overrides Omarchy's tag-based browser tiling rule as well as ordinary
+class rules. It sets the default when a window opens; deliberate manual tiling
+remains available. Existing tiled windows need to be floated once or reopened
+after first installing this policy; a config reload alone does not reapply
+static window rules.
 
 ## Install
 

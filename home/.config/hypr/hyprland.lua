@@ -35,8 +35,8 @@ o.window({ modal = true }, {
   max_size = { 1200, 720 },
 })
 
--- Keep production apps as movable, overlapping windows instead of
--- shrinking them into the tiled layout. Other apps keep Omarchy's tiling.
+-- Comfortable initial sizes for frequently used apps. The global floating
+-- policy below applies to these AND every other normal application.
 o.window({ class = "^foot$" }, {
   float = true,
   center = true,
@@ -80,3 +80,6 @@ o.window({
   center = true,
   max_size = { 1200, 720 },
 })
+
+-- Keep last: override upstream tiling, including tag-dependent browser rules.
+require("hypr.floating")

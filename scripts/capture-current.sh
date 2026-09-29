@@ -8,6 +8,7 @@ tracked_home_files=(
   .codex/skills/omarchy-macbook-updates/SKILL.md
   .config/foot/foot.ini
   .config/hypr/hyprland.lua
+  .config/hypr/floating.lua
   .config/hypr/bindings.lua
   .config/hypr/input.lua
   .config/hypr/looknfeel.lua
