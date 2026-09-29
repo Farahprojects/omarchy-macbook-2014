@@ -25,6 +25,8 @@ MacBook-specific hardware settings and user customizations.
   notes/configuration.
 - An optional OBS launcher that warms up a DJI Pocket 3 UVC stream before OBS
   starts.
+- A Codex skill that preserves requested MacBook customizations in this
+  repository, validates them, and verifies the GitHub push.
 
 The snapshot was captured from Omarchy `4.0.4` on 29 September 2026.
 
@@ -65,6 +67,21 @@ omarchy-update
 The package update and this overlay are independent. After a major Omarchy
 release, see [UPDATING.md](UPDATING.md) before refreshing any customized config
 from `/usr/share/omarchy/config`.
+
+## Codex on the MacBook
+
+The overlay installs `omarchy-macbook-updates` under
+`~/.codex/skills/`. The repository's `AGENTS.md` routes Codex to the same
+workflow. Peter's Mac also has the scoped
+[global instruction fragment](docs/codex-global-instructions.md) in
+`~/.codex/AGENTS.md`, so the destination is known even when Codex starts outside
+the checkout. Merge that fragment with existing instructions when setting up
+Peter's workflow again; do not replace unrelated global instructions.
+
+Restart an already-open Codex CLI session once after adding global instructions.
+The skill can also be requested explicitly as `$omarchy-macbook-updates`.
+Other users should select their own fork and credentials before publishing.
+Authentication is local to each machine and is never included in this overlay.
 
 ## Privacy
 

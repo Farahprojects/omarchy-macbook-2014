@@ -1,7 +1,8 @@
 # Updating safely
 
 The installed Omarchy package lives in `/usr/share/omarchy`. The customized
-files in this repository live under `~/.config` and `~/.local`, so a normal
+files in this repository live under `~/.config`, `~/.local`, and the selected
+Codex skill directory, so a normal
 system update does not require replacing this repository or switching to a
 custom Omarchy package.
 
@@ -39,10 +40,17 @@ After changing one of the tracked files on the MacBook:
 ./scripts/capture-current.sh
 git diff --check
 git diff
-git add .
+# Stage only the reviewed paths belonging to your change:
+git add -- home/path/to/changed-file
 git commit -m "Describe the MacBook change"
-git push
+git push origin main
+git ls-remote origin refs/heads/main
 ```
 
 The capture script has an explicit allowlist. It does not copy whole browser,
 OBS, SSH, cache, history, or state directories.
+
+Confirm the remote hash matches your intended commit before calling a change
+saved on GitHub. Codex follows the repository's `AGENTS.md` and the bundled
+`omarchy-macbook-updates` skill for this workflow. The skill is allowlisted;
+Codex credentials, conversations, and unrelated global preferences are not.
